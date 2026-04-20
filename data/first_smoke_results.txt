@@ -33,3 +33,10 @@ Sample params: temperature=0.2, max_tokens=1024, top_p=1.0
 Caveats: one-shot greedy sampling; first 50 problems only (not full 164);
 permissive code extraction. Relative model ranking valid; absolute numbers
 higher than published benchmarks.
+
+Note (2026-04-20): Qwen's low pass@1 (46%) traces to a prompt-format mismatch.
+Qwen treats the HumanEval prompt as a completion target and emits only the
+function body, skipping the `def <name>(...):` signature. The sandbox then
+calls `check(<entry_point>)` on an undefined name, raising NameError. This is
+a prompt-sensitivity issue, not a capability gap; it was left uncorrected in
+week 1 to preserve the integrity of the initial measurement.
