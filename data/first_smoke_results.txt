@@ -1,0 +1,19 @@
+Date: 2026-04-20
+Models: qwen3.5:9b, gemma4:e4b, llama3.2:3b
+Prompt: "Write a Python function that returns the nth Fibonacci number. Return only the code, no explanation."
+Sample params: temperature=0.2, max_tokens=512
+
+Model     : ollama/qwen3.5:9b
+Latency   : 32023 ms
+Tokens    : 35 in / 97 out
+Output    : '```python\ndef fibonacci(n):\n    if n < 0:\n        raise ValueError("Input must b'
+
+Model     : ollama/gemma4:e4b
+Latency   : 14282 ms
+Tokens    : 32 in / 82 out
+Output    : '```python\ndef fibonacci(n):\n    if n <= 0:\n        return 0\n    elif n == 1:\n   '
+
+Model     : ollama/llama3.2:3b
+Latency   : 5184 ms
+Tokens    : 47 in / 91 out
+Output    : '```python\ndef fibonacci(n):\n    if n <= 0:\n        return "Input should be posit'

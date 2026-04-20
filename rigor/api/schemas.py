@@ -1,9 +1,22 @@
 """Pydantic v2 request/response schemas for the API."""
 
-# TODO: Define Pydantic v2 schemas for all API endpoints (section 4 of SPEC.md):
-#   - RunCreate, RunRead, RunList
-#   - ResultRead, ResultList (paginated)
-#   - DatasetRead, DatasetList
-#   - ModelRead, ModelList
-#   - PromptCreate, PromptRead, PromptList
-#   - HealthRead
+import uuid
+from datetime import datetime
+
+from pydantic import BaseModel
+
+
+class HealthResponse(BaseModel):
+    status: str
+    database: str
+
+    model_config = {"from_attributes": True}
+
+
+class ModelResponse(BaseModel):
+    id: uuid.UUID
+    name: str
+    provider: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
