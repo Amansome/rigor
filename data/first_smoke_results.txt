@@ -17,3 +17,19 @@ Model     : ollama/llama3.2:3b
 Latency   : 5184 ms
 Tokens    : 47 in / 91 out
 Output    : '```python\ndef fibonacci(n):\n    if n <= 0:\n        return "Input should be posit'
+
+---
+
+Date: 2026-04-20 (Session E — pass@1 enabled)
+Dataset: HumanEval, first 50 problems
+Prompt: codegen_v1 (Jinja-rendered from configs/humaneval_codegen.yaml)
+Sample params: temperature=0.2, max_tokens=1024, top_p=1.0
+
+          model | pass@1 | exact_match | avg_latency_s
+  llama3.2:3b   |  0.78  |    0.00     |     2.8
+  gemma4:e4b    |  0.76  |    0.11     |     9.7
+  qwen3.5:9b    |  0.46  |    0.05     |    10.8
+
+Caveats: one-shot greedy sampling; first 50 problems only (not full 164);
+permissive code extraction. Relative model ranking valid; absolute numbers
+higher than published benchmarks.
