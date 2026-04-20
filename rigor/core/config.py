@@ -1,9 +1,20 @@
 """Pydantic-settings configuration for the application."""
 
-# TODO: Define a Settings class using pydantic-settings (section 11 of SPEC.md):
-#   - DATABASE_URL: str
-#   - OLLAMA_BASE_URL: str = "http://localhost:11434"
-#   - USE_HOSTED_MODELS: bool = False
-#   - ANTHROPIC_API_KEY: str | None = None
-#   - OPENAI_API_KEY: str | None = None
-#   Expose a cached get_settings() dependency for use in FastAPI and the runner.
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings
+
+
+class Settings(BaseSettings):
+    database_url: str
+    ollama_base_url: str = "http://localhost:11434"
+    use_hosted_models: bool = False
+    anthropic_api_key: str | None = None
+    openai_api_key: str | None = None
+
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
