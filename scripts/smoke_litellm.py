@@ -1,6 +1,9 @@
 """Smoke test for the LiteLLM adapter against local Ollama models."""
 
+import logging
 import traceback
+
+logging.basicConfig(level=logging.INFO, format="%(name)s - %(levelname)s - %(message)s")
 
 from rigor.models.litellm_adapter import generate
 
@@ -12,7 +15,7 @@ MODELS = [
 
 PROMPT = "Write a Python function that returns the nth Fibonacci number. Return only the code, no explanation."
 
-SAMPLE_PARAMS = {"temperature": 0.2, "max_tokens": 512}
+SAMPLE_PARAMS = {"temperature": 0.2, "max_tokens": 512, "presence_penalty": 0}
 
 SEPARATOR = "-" * 60
 

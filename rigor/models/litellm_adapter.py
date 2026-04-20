@@ -1,5 +1,6 @@
 """LiteLLM adapter for Ollama (primary) and hosted providers."""
 
+import logging
 import time
 from dataclasses import dataclass
 from decimal import Decimal
@@ -10,6 +11,8 @@ litellm.suppress_debug_info = True
 litellm.drop_params = True  # silently drop provider-unsupported params (e.g. presence_penalty on Ollama)
 
 from rigor.core.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -50,6 +53,17 @@ def generate(
 
     if sample_params:
         kwargs.update(sample_params)
+
+    # Log which params are being sent and which will be silently dropped by litellm.
+    # We compute the dropped set before the call so we have a record even on failure.
+    # TODO (week 2): persist dropped_params into runs.config for a full per-run audit trail.
+    if sample_params:
+        supported = set(litellm.get_supported_openai_params(model=model) or [])
+        sent = [k for k in sample_params if k in supported]
+        dropped = [k for k in sample_params if k not in supported]
+        logger.info("model=%s  sending params: %s", model, sent)
+        if dropped:
+            logger.info("model=%s  dropping unsupported params: %s", model, dropped)
 
     t0 = time.perf_counter()
     response = litellm.completion(
