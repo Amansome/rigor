@@ -1,5 +1,13 @@
-"""Exact-match metric: 1.0 if output equals reference, else 0.0."""
+"""Exact-match metric: 1.0 if output equals canonical_solution, else 0.0."""
 
-# TODO: Implement ExactMatch(BaseMetric) with name = "exact_match":
-#   score(output, reference) — strip whitespace from both sides, compare strings,
-#   return 1.0 on match, 0.0 otherwise.
+from rigor.metrics import registry
+
+
+class ExactMatch:
+    name = "exact_match"
+
+    def compute(self, output: str, reference: dict, input: dict) -> float:
+        return 1.0 if output.strip() == reference["canonical_solution"].strip() else 0.0
+
+
+registry.register(ExactMatch())

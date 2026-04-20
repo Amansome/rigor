@@ -7,6 +7,7 @@ from decimal import Decimal
 import litellm
 
 litellm.suppress_debug_info = True
+litellm.drop_params = True  # silently drop provider-unsupported params (e.g. presence_penalty on Ollama)
 
 from rigor.core.config import get_settings
 

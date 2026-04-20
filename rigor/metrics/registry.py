@@ -1,7 +1,19 @@
-"""Metric registry: maps metric names to BaseMetric instances."""
+"""Metric registry: maps metric names to Metric instances."""
 
-# TODO: Implement MetricRegistry with:
-#   - register(metric: BaseMetric) — add a metric by name
-#   - get(name: str) -> BaseMetric — lookup or raise KeyError
-#   - default_registry() — returns registry pre-loaded with exact_match and pass_at_1
-#   This registry is the extension point for the week 2 plugin system.
+from rigor.metrics.base import Metric
+
+_registry: dict[str, Metric] = {}
+
+
+def register(metric: Metric) -> None:
+    _registry[metric.name] = metric
+
+
+def get(name: str) -> Metric:
+    if name not in _registry:
+        raise KeyError(f"Metric '{name}' not registered. Available: {list(_registry)}")
+    return _registry[name]
+
+
+def all_names() -> list[str]:
+    return sorted(_registry)

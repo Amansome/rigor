@@ -1,6 +1,10 @@
-"""Abstract base class for all metrics."""
+"""Metric protocol."""
 
-# TODO: Define BaseMetric ABC with:
-#   - name: str class attribute
-#   - score(output: str, reference: dict) -> float  abstract method
-#   All built-in and plugin metrics must subclass BaseMetric.
+from typing import Protocol
+
+
+class Metric(Protocol):
+    name: str
+
+    def compute(self, output: str, reference: dict, input: dict) -> float:
+        ...
