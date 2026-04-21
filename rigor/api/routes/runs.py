@@ -9,15 +9,19 @@ from sqlalchemy.orm import Session
 
 from rigor.api.schemas import (
     BootstrapCIResponse,
+    CompareResponse,
     CreateRunRequest,
+    PairedTestResultResponse,
     ResultResponse,
     RunResponse,
     RunSummaryResponse,
 )
 from rigor.core.background import execute_run_in_new_session
+from rigor.core.queries import get_paired_scores
 from rigor.db.models import Dataset, Model, Prompt, Result, Run
 from rigor.db.session import get_db
 from rigor.stats.bootstrap import bootstrap_ci
+from rigor.stats.significance import paired_permutation_test, wilcoxon_signed_rank_test
 
 router = APIRouter()
 
@@ -153,3 +157,65 @@ def create_run(
 
     background_tasks.add_task(execute_run_in_new_session, run.id)
     return run
+
+
+@router.get("/runs/{run_a_id}/compare/{run_b_id}", response_model=CompareResponse)
+def compare_runs(
+    run_a_id: uuid.UUID,
+    run_b_id: uuid.UUID,
+    metric: str = "pass_at_1",
+    db: Session = Depends(get_db),
+) -> CompareResponse:
+    run_a = db.get(Run, run_a_id)
+    if run_a is None:
+        raise HTTPException(status_code=404, detail=f"Run {run_a_id} not found")
+    run_b = db.get(Run, run_b_id)
+    if run_b is None:
+        raise HTTPException(status_code=404, detail=f"Run {run_b_id} not found")
+
+    if run_a.status != "completed":
+        raise HTTPException(status_code=400, detail=f"Run {run_a_id} is not completed (status={run_a.status})")
+    if run_b.status != "completed":
+        raise HTTPException(status_code=400, detail=f"Run {run_b_id} is not completed (status={run_b.status})")
+
+    if run_a.dataset_id != run_b.dataset_id:
+        raise HTTPException(status_code=400, detail="runs must be on the same dataset")
+
+    scores_a, scores_b = get_paired_scores(db, run_a_id, run_b_id, metric)
+
+    # Filter NaN pairs for top-level stats
+    valid = [
+        (a, b)
+        for a, b in zip(scores_a, scores_b)
+        if not (math.isnan(a) or math.isnan(b))
+    ]
+    n_pairs = len(valid)
+    mean_a = sum(a for a, _ in valid) / n_pairs if n_pairs else float("nan")
+    mean_b = sum(b for _, b in valid) / n_pairs if n_pairs else float("nan")
+    mean_difference = mean_a - mean_b
+
+    perm_result = paired_permutation_test(scores_a, scores_b)
+    wilcoxon_result = wilcoxon_signed_rank_test(scores_a, scores_b)
+
+    def _to_response(r) -> PairedTestResultResponse:
+        return PairedTestResultResponse(
+            test_name=r.test_name,
+            n_pairs=r.n_pairs,
+            mean_difference=r.mean_difference,
+            p_value=r.p_value,
+            significant_at_0_05=r.significant_at_0_05,
+        )
+
+    return CompareResponse(
+        run_a=run_a_id,
+        run_b=run_b_id,
+        metric=metric,
+        n_pairs=n_pairs,
+        mean_a=mean_a,
+        mean_b=mean_b,
+        mean_difference=mean_difference,
+        tests={
+            "paired_permutation": _to_response(perm_result),
+            "wilcoxon_signed_rank": _to_response(wilcoxon_result),
+        },
+    )

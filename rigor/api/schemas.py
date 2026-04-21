@@ -89,6 +89,25 @@ class RunSummaryResponse(BaseModel):
     metrics: dict[str, BootstrapCIResponse]
 
 
+class PairedTestResultResponse(BaseModel):
+    test_name: str
+    n_pairs: int
+    mean_difference: float
+    p_value: float
+    significant_at_0_05: bool
+
+
+class CompareResponse(BaseModel):
+    run_a: uuid.UUID
+    run_b: uuid.UUID
+    metric: str
+    n_pairs: int
+    mean_a: float
+    mean_b: float
+    mean_difference: float
+    tests: dict[str, PairedTestResultResponse]
+
+
 class CreateRunRequest(BaseModel):
     dataset_name: str
     model_name: str
