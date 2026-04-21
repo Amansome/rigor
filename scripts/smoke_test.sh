@@ -102,7 +102,7 @@ for MODEL in "${MODELS[@]}"; do
       \"prompt_version\": 1,
       \"sample_params\": {\"temperature\": 0.2, \"max_tokens\": 1024, \"top_p\": 1.0}
     }")
-  BODY=$(echo "$RESPONSE" | head -n -1)
+  BODY=$(echo "$RESPONSE" | sed '$d')
   STATUS=$(echo "$RESPONSE" | tail -n 1)
 
   if [[ "$STATUS" != "202" ]]; then
