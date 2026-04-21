@@ -72,12 +72,21 @@ class ResultResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class BootstrapCIResponse(BaseModel):
+    mean: float
+    ci_low: float
+    ci_high: float
+    n_samples: int
+    confidence: float
+    n_iterations: int
+
+
 class RunSummaryResponse(BaseModel):
     run_id: uuid.UUID
     status: str
     n_results: int
     n_errors: int
-    metrics_avg: dict[str, float]
+    metrics: dict[str, BootstrapCIResponse]
 
 
 class CreateRunRequest(BaseModel):

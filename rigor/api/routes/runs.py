@@ -1,5 +1,6 @@
 """Routes for /api/v1/runs."""
 
+import math
 import uuid
 from typing import Annotated
 
@@ -7,6 +8,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from rigor.api.schemas import (
+    BootstrapCIResponse,
     CreateRunRequest,
     ResultResponse,
     RunResponse,
@@ -15,6 +17,7 @@ from rigor.api.schemas import (
 from rigor.core.background import execute_run_in_new_session
 from rigor.db.models import Dataset, Model, Prompt, Result, Run
 from rigor.db.session import get_db
+from rigor.stats.bootstrap import bootstrap_ci
 
 router = APIRouter()
 
@@ -73,24 +76,33 @@ def get_run_summary(run_id: uuid.UUID, db: Session = Depends(get_db)) -> RunSumm
     n_results = len(results)
     n_errors = sum(1 for r in results if r.error is not None)
 
-    # Aggregate each metric key across all results, skipping nulls.
-    sums: dict[str, float] = {}
-    counts: dict[str, int] = {}
+    # Collect per-example scores for each metric key across all results.
+    scores_by_metric: dict[str, list[float]] = {}
     for r in results:
         for k, v in (r.metrics or {}).items():
-            if v is None:
+            if v is None or (isinstance(v, float) and math.isnan(v)):
+                # Skip NaN/None values defensively — shouldn't happen with current metrics
                 continue
-            sums[k] = sums.get(k, 0.0) + float(v)
-            counts[k] = counts.get(k, 0) + 1
+            scores_by_metric.setdefault(k, []).append(float(v))
 
-    metrics_avg = {k: sums[k] / counts[k] for k in sums if counts[k] > 0}
+    metrics: dict[str, BootstrapCIResponse] = {}
+    for metric_name, scores in scores_by_metric.items():
+        ci = bootstrap_ci(scores)
+        metrics[metric_name] = BootstrapCIResponse(
+            mean=ci.mean,
+            ci_low=ci.ci_low,
+            ci_high=ci.ci_high,
+            n_samples=ci.n_samples,
+            confidence=ci.confidence,
+            n_iterations=ci.n_iterations,
+        )
 
     return RunSummaryResponse(
         run_id=run_id,
         status=run.status,
         n_results=n_results,
         n_errors=n_errors,
-        metrics_avg=metrics_avg,
+        metrics=metrics,
     )
 
 

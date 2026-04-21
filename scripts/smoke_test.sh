@@ -146,18 +146,31 @@ done
 # ── Step 7: Print summary table ───────────────────────────────────────────────
 echo ""
 echo "==> Results"
-printf "%-20s %-10s %-10s %-10s %-15s\n" "model" "status" "pass@1" "exact_match" "n_results"
-printf "%-20s %-10s %-10s %-10s %-15s\n" "-----" "------" "------" "-----------" "---------"
+printf "%-20s %-30s %-30s %-5s\n" "model" "pass@1" "exact_match" "n"
+printf "%-20s %-30s %-30s %-5s\n" "-----" "------" "-----------" "-"
 
 for idx in "${!RUN_IDS[@]}"; do
   RUN_ID="${RUN_IDS[$idx]}"
   MODEL="${MODELS[$idx]}"
   SUMMARY=$(curl -s "${API}/runs/${RUN_ID}/summary")
-  STATUS=$(echo "$SUMMARY" | jq -r '.status')
   N=$(echo "$SUMMARY" | jq -r '.n_results')
-  PASS=$(echo "$SUMMARY" | jq -r '.metrics_avg.pass_at_1 // "n/a"')
-  EXACT=$(echo "$SUMMARY" | jq -r '.metrics_avg.exact_match // "n/a"')
-  printf "%-20s %-10s %-10s %-10s %-15s\n" "$MODEL" "$STATUS" "$PASS" "$EXACT" "$N"
+
+  fmt_ci() {
+    local metric="$1"
+    local mean ci_low ci_high
+    mean=$(echo "$SUMMARY" | jq -r ".metrics.${metric}.mean // \"n/a\"")
+    if [[ "$mean" == "n/a" ]]; then
+      echo "n/a"
+      return
+    fi
+    ci_low=$(echo "$SUMMARY" | jq -r ".metrics.${metric}.ci_low")
+    ci_high=$(echo "$SUMMARY" | jq -r ".metrics.${metric}.ci_high")
+    printf "%.2f [%.2f, %.2f]" "$mean" "$ci_low" "$ci_high"
+  }
+
+  PASS=$(fmt_ci "pass_at_1")
+  EXACT=$(fmt_ci "exact_match")
+  printf "%-20s %-30s %-30s %-5s\n" "$MODEL" "$PASS" "$EXACT" "$N"
 done
 
 echo ""
