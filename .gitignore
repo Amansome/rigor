@@ -12,3 +12,6 @@ build/
 node_modules/
 .next/
 data/pass_at_1_run_*.log
+dashboard/node_modules/
+dashboard/.next/
+dashboard/out/
