@@ -40,3 +40,20 @@ function body, skipping the `def <name>(...):` signature. The sandbox then
 calls `check(<entry_point>)` on an undefined name, raising NameError. This is
 a prompt-sensitivity issue, not a capability gap; it was left uncorrected in
 week 1 to preserve the integrity of the initial measurement.
+
+---
+
+Date: 2026-04-20 (Session F — full HTTP smoke test)
+Dataset: HumanEval, first 50 problems
+Prompt: codegen_v2 (bare "{{ prompt }}" passthrough)
+Sample params: temperature=0.2, max_tokens=1024, top_p=1.0
+
+  model        | pass@1 | exact_match | n
+  gemma4:e4b   | 0.755  |   0.102     | 50
+  llama3.2:3b  | 0.694  |   0.000     | 50
+  qwen3.5:9b   | 0.460  |   0.061     | 50
+
+Observation: same models, same dataset, different prompt template vs Session E.
+Gemma essentially unchanged (75.5% vs 76%), Llama dropped 9 points (69.4% vs 78%),
+Qwen unchanged (46%). Supports the hypothesis that prompt-format sensitivity is
+asymmetric across model families. Motivates week 2 work on multi-prompt evals.
