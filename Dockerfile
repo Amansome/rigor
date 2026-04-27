@@ -13,7 +13,7 @@ COPY rigor/ ./rigor/
 RUN useradd -m -u 1000 rigor && chown -R rigor:rigor /app
 USER rigor
 
-ENV PORT=8080
-EXPOSE 8080
+ENV PORT=8000
+EXPOSE 8000
 
-CMD ["uv", "run", "uvicorn", "rigor.api.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["sh", "-c", "uv run uvicorn rigor.api.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

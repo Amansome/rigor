@@ -21,7 +21,6 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://rigor-dashboard.vercel.app",  # placeholder, may change in Session L
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST"],
