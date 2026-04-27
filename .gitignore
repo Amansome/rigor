@@ -15,3 +15,9 @@ data/pass_at_1_run_*.log
 dashboard/node_modules/
 dashboard/.next/
 dashboard/out/
+
+# Claude Code cache
+claudemap-*.json
+
+# Smoke test logs
+data/smoke_test_*.log
