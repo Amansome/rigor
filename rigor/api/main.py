@@ -19,7 +19,10 @@ app = FastAPI(title="Rigor", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://rigor-dashboard.vercel.app",  # placeholder, may change in Session L
+    ],
     allow_credentials=True,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
